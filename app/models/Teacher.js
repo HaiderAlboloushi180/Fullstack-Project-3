@@ -1,7 +1,7 @@
 // Imports
 const { Schema, model } = require('mongoose')
 const shortId = require('shortid')
-const hashpassword = require('../helpers')
+const hashPassword = require('../helpers')
 
 // Teacher's Schema
 const TeacherSchema = new Schema({
@@ -14,7 +14,7 @@ const TeacherSchema = new Schema({
 
 TeacherSchema.pre('save', async function(next) {
     this.salt = shortId.generate()
-    this.password = await hashpassword(this.password, this.salt)
+    this.password = await hashPassword(this.password, this.salt)
 })
 
 // Teacher's Model

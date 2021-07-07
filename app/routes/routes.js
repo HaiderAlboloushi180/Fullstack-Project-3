@@ -3,13 +3,9 @@ const Joi = require("@hapi/joi");
 const jwt = require("jsonwebtoken");
 const TeacherModel = require('../models/Teacher')
 const StudentModel = require('../models/Student')
-const hashpassword = require('../helpers')
+const hashPassword = require('../helpers')
 
 const setUpRoutes = (app) => {
-    // 3. تسجيل مدرس جديد و تخزين بياناته | new teacher sign up
-    
-    // 4. تسجيل دخول مدرس و ارجاع التوكن | teacher login and response with jwt token
-    
     // GET
     app.get('/students', async (req, res) => {
         try {
@@ -68,7 +64,7 @@ const setUpRoutes = (app) => {
                 city,
                 email
             })
-            await StudentModel.save()
+            await newStudent.save()
             res.send(newStudent)
         } catch (err) {
             res.statusCode = 400
@@ -100,7 +96,7 @@ const setUpRoutes = (app) => {
                 password,
                 email
             })
-            await TeacherModel.save()
+            await newTeacher.save()
             res.send(newTeacher)
         } catch (err) {
             res.statusCode = 400
@@ -110,14 +106,14 @@ const setUpRoutes = (app) => {
 
     app.post('/teacher/login', async (req, res) => {
         const { email, password } = req.body
-        const teacher = TeacherModel.find({email})
+        const teacher = await TeacherModel.find({email})
 
         if (!teacher) {
             res.statusCode = 401
             res.send('No User Found')
         } else {
-            if (teacher.password === hashPassword(password, teacher.salt)) {
-                const token = jwt.sign({sub: teacher._id,}, teacher.salt, {expiresIn: 30})
+            if (teacher[0].password === hashPassword(password, teacher[0].salt)) {
+                const token = jwt.sign({sub: teacher[0]._id,}, "" + teacher[0].salt, {expiresIn: 30000000})
                 res.send(token)
             } else {
                 res.statusCode = 403
@@ -136,10 +132,19 @@ const setUpRoutes = (app) => {
             res.send('UserID Incorrect')
         } else {
             const { birthdate, city, name, email } = req.body
-            if (birthdate || city || name || email) {
+            if (birthdate) {
                 student.birthdate = birthdate
+                student.save()
+                res.send(student)
+            } else if (city) {
                 student.city = city
+                student.save()
+                res.send(student)
+            } else if (name) {
                 student.name = name
+                student.save()
+                res.send(student)
+            } else if (email) {
                 student.email = email
                 student.save()
                 res.send(student)
@@ -149,11 +154,11 @@ const setUpRoutes = (app) => {
     })
 
     // DELETE
-    app.delete('/:id', async (req, res) => {
-        const { id } = req.body
+    app.delete('/delete/:id', async (req, res) => {
+        const { id } = req.params
         const student = await StudentModel.deleteOne({_id: id})
         res.send('Successfully Deleted')
     })
 }
 
-module.exports = setUpRoutes 
+module.exports = setUpRoutes
